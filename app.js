@@ -375,23 +375,71 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  installPrompt = e;
-  $('install').style.display = 'block';
+// iPhone / iPad에서는 Safari의 수동 설치 방법을 안내합니다.
+const installButton = $('install');
+const isAppleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standaloneMedia = window.matchMedia('(display-mode: standalone)');
+const isStandalone = () => standaloneMedia.matches || navigator.standalone === true;
+
+function updateInstallButton() {
+  if (!installButton) return;
+  const installed = isStandalone();
+  installButton.hidden = installed;
+  installButton.style.display = installed ? 'none' : 'block';
+  installButton.disabled = installed || (!isAppleMobile && !installPrompt);
+  installButton.textContent = isAppleMobile ? '아이폰·아이패드 설치 안내' : '앱 설치';
+  installButton.title = isAppleMobile
+    ? '홈 화면에 추가하는 방법을 확인합니다.'
+    : installPrompt ? '시간표 앱을 설치합니다.' : '이 브라우저에서 설치가 준비되면 활성화됩니다.';
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  updateInstallButton();
 });
 
-$('install').onclick = async () => {
-  if (installPrompt) {
-    await installPrompt.prompt();
+if (installButton) {
+  installButton.onclick = async () => {
+    if (isAppleMobile) {
+      window.alert(
+        '여강 학생 시간표 설치 안내\n\n' +
+        '1. Safari에서 이 시간표 주소를 여세요.\n' +
+        '2. 공유 버튼(네모 위로 화살표)을 누르세요.\n' +
+        '   공유 버튼이 보이지 않으면 메뉴(…)에서 찾아보세요.\n' +
+        '3. “홈 화면에 추가”를 선택하세요.\n' +
+        '   항목이 보이지 않으면 공유 메뉴를 아래로 내려보세요.\n' +
+        '4. “웹 앱으로 열기”가 보이면 켜고 “추가”를 누르세요.\n\n' +
+        '이 버튼은 자동 설치 대신 설치 방법을 안내합니다.\n' +
+        '학생용과 교사용은 각각의 주소에서 따로 추가하세요.'
+      );
+      return;
+    }
+    if (!installPrompt) return;
+    const prompt = installPrompt;
     installPrompt = null;
-    $('install').style.display = 'none';
-  }
-};
-
+    updateInstallButton();
+    try {
+      await prompt.prompt();
+      await prompt.userChoice;
+    } catch (error) {
+      console.warn('설치 창을 열지 못했습니다.', error);
+    }
+  };
+}
 window.addEventListener('appinstalled', () => {
-  $('install').style.display = 'none';
+  installPrompt = null;
+  if (installButton) {
+    installButton.hidden = true;
+    installButton.style.display = 'none';
+  }
 });
+if (standaloneMedia.addEventListener) {
+  standaloneMedia.addEventListener('change', updateInstallButton);
+}
+window.addEventListener('pageshow', updateInstallButton);
+updateInstallButton();
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   navigator.serviceWorker.register('./sw.js').catch(() => {
