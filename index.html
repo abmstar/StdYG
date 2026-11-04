@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#245b4a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <title>여강 학생 시간표</title>
+
+    <style>
+      :root {
+        color-scheme: light;
+        --green: #245b4a;
+        --ink: #172e29;
+        --muted: #596d65;
+        --line: #dae3dd;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f2f5f0;
+        color: var(--ink);
+        font-family:
+          system-ui,
+          'Apple SD Gothic Neo',
+          'Nanum Gothic',
+          sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+        border: 1px solid var(--line);
+        background: white;
+        border-radius: 12px;
+        padding: 11px 15px;
+        color: var(--ink);
+      }
+
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #c88227;
+        outline-offset: 2px;
+      }
+
+      button.primary {
+        background: var(--green);
+        color: white;
+        border: 0;
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: default;
+      }
+
+      input {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: white;
+        color: var(--ink);
+      }
+
+      select {
+        font: inherit;
+        background: white;
+        border: 1px solid #dae3dd;
+        border-radius: 12px;
+        padding: 10px;
+        color: #172e29;
+      }
+
+      .shell {
+        max-width: 1050px;
+        margin: auto;
+        padding: 30px 18px 40px;
+      }
+
+      /* 상단 제목 */
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        color: var(--green);
+        font-weight: 750;
+      }
+
+      h1 {
+        font-size: 28px;
+        margin: 7px 0;
+      }
+
+      p {
+        line-height: 1.6;
+      }
+
+      .sub {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0;
+      }
+
+      /* 학급 선택 및 조회 */
+      .controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 24px 0 18px;
+      }
+
+      .controls .grow {
+        flex: 1;
+      }
+
+      .teacher-input {
+        width: 180px;
+      }
+
+      /* 주간 제목 및 이동 버튼 */
+      .weekbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 22px 0 14px;
+      }
+
+      .weekbar > div {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .weekbar h2 {
+        font-size: 23px;
+        margin: 0;
+      }
+
+      .badge {
+        font-size: 12px;
+        color: var(--green);
+        background: #e0ede4;
+        border-radius: 30px;
+        padding: 6px 10px;
+        display: inline-block;
+        margin-bottom: 8px;
+      }
+
+      .weekbar .badge {
+        margin-bottom: 0;
+      }
+
+      .nav {
+        display: flex;
+        gap: 7px;
+      }
+
+      /* 시간표 */
+      .panel {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 35px #173a2910;
+        touch-action: pan-y;
+      }
+
+      .table {
+        display: grid;
+        grid-template-columns: 46px repeat(5, minmax(0, 1fr));
+      }
+
+      .cell {
+        min-height: 54px;
+        padding: 2px 3px;
+        border-right: 1px solid #e7ece7;
+        border-bottom: 1px solid #e7ece7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        font-size: 14px;
+        line-height: 1.2;
+        gap: 0;
+      }
+
+      .cell:nth-child(6n) {
+        border-right: 0;
+      }
+
+      .cell.head {
+        min-height: 32px;
+        padding: 2px 3px;
+        font-weight: 700;
+        background: #f7f9f5;
+      }
+
+      .cell.period {
+        font-size: 12px;
+        color: var(--muted);
+        background: #fafbf8;
+      }
+
+      .cell.today {
+        background: #f0f7f0;
+      }
+
+      .head.today {
+        color: var(--green);
+        box-shadow: inset 0 3px var(--green);
+      }
+
+      .empty-cell {
+        color: #c3cec6;
+      }
+
+      /* 안내 및 상태 */
+      .notice {
+        padding: 34px 22px;
+        text-align: center;
+        line-height: 1.8;
+        color: var(--muted);
+      }
+
+      .notice strong {
+        display: block;
+        color: var(--ink);
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 12px;
+        min-height: 24px;
+        margin-top: 12px;
+      }
+
+      .hint {
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 18px;
+      }
+
+      .privacy {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.7;
+        margin-top: 24px;
+      }
+
+      /* 기존 설정 영역 스타일 */
+      .settings {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 18px;
+        margin-top: 20px;
+      }
+
+      .settings p {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .settings input {
+        width: 100%;
+      }
+
+      .settings button {
+        margin-top: 12px;
+      }
+
+      details summary {
+        cursor: pointer;
+        font-weight: 650;
+      }
+
+      /* 설치 가능 여부는 app.js에서 처리 */
+      #install {
+        display: none;
+      }
+
+      /* 태블릿 및 휴대전화 */
+      @media (max-width: 768px) {
+        .nav {
+          display: none;
+        }
+
+        .cell {
+          min-height: 48px;
+          padding: 2px;
+          font-size: 11px;
+          line-height: 1.15;
+        }
+
+        .cell.head {
+          min-height: 30px;
+        }
+      }
+
+      /* 작은 휴대전화 화면 */
+      @media (max-width: 540px) {
+        .shell {
+          padding: 22px 10px;
+        }
+
+        h1 {
+          font-size: 23px;
+        }
+
+        .top {
+          align-items: flex-start;
+        }
+
+        .teacher-input {
+          width: 145px;
+        }
+
+        .table {
+          grid-template-columns: 34px repeat(5, minmax(0, 1fr));
+        }
+
+        .cell.period {
+          font-size: 10px;
+        }
+
+        .weekbar h2 {
+          font-size: 20px;
+        }
+
+        .nav button {
+          padding: 10px;
+        }
+
+        .controls {
+          gap: 6px;
+        }
+
+        .controls button {
+          padding: 10px;
+        }
+
+        .panel {
+          border-radius: 14px;
+        }
+      }
+	  /* 제목과 소개 문구를 가로로 배치 */
+		.title-row {
+		  display: flex;
+		  align-items: center;
+		  gap: 12px;
+		  flex: 1;
+		  min-width: 0;
+		}
+
+		.title-group {
+		  min-width: 0;
+		}
+
+		.tagline {
+		  flex: 0 1 auto;
+		  margin: 0;
+		  font-size: 12px;
+		  line-height: 1.3;
+		  word-break: keep-all;
+		}
+
+		#install {
+		  flex-shrink: 0;
+		}
+
+		/* 휴대전화에서는 간격과 글자 크기 축소 */
+		@media (max-width: 540px) {
+		  .title-row {
+			gap: 8px;
+		  }
+
+		  .title-group {
+			flex-shrink: 0;
+		  }
+
+		  .tagline {
+			font-size: 10px;
+		  }
+		}
+
+    </style>
+  </head>
+
+  <body>
+    <main class="shell">
+      <!-- 상단 제목 -->
+		<header class="top">
+		  <div class="title-row">
+			<div class="title-group">
+			  <div class="eyebrow">CLASS WEEK / TIMETABLE</div>
+			  <h1>여강 학생 시간표</h1>
+			</div>
+
+			<p class="sub tagline">필요한 수업을, 한눈에.</p>
+		  </div>
+
+		  <button id="install">앱 설치</button>
+		</header>
+
+
+      <!-- 학급 선택 -->
+      <form id="teacherForm" class="controls">
+        <label class="sr" for="teacher" hidden>
+          학급
+        </label>
+
+        <select
+          id="teacher"
+          class="teacher-input"
+          aria-label="학급"
+          required
+        >
+          <option value="">학급 선택</option>
+          <option>1-1반</option>
+          <option>1-2반</option>
+          <option>1-3반</option>
+          <option>2-1반</option>
+          <option>2-2반</option>
+          <option>2-3반</option>
+          <option>3-1반</option>
+          <option>3-2반</option>
+          <option>3-3반</option>
+        </select>
+
+        <button class="primary" type="submit">
+          조회
+        </button>
+
+        <span class="grow"></span>
+
+        <button type="button" id="refresh">
+          새로고침
+        </button>
+      </form>
+
+      <!-- 주간 제목 및 이동 -->
+      <section class="weekbar">
+        <div>
+          <span class="badge" id="relative">이번 주</span>
+          <h2 id="weekTitle"></h2>
+        </div>
+
+        <nav class="nav" aria-label="주간 이동">
+          <button id="previous" aria-label="이전 주">
+            이전
+          </button>
+
+          <button id="thisWeek">
+            오늘
+          </button>
+
+          <button id="next" aria-label="다음 주">
+            다음
+          </button>
+        </nav>
+      </section>
+
+      <!-- 시간표 표시 -->
+      <section
+        id="surface"
+        class="panel"
+        aria-label="주간 시간표"
+      >
+        <div id="schedule"></div>
+      </section>
+
+      <!-- 조회 상태 -->
+      <div
+        id="status"
+        class="status"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <div class="hint">
+        ← 왼쪽으로 밀면 이전 주 · 오른쪽으로 밀면 다음 주 →
+      </div>
+
+      <!-- 하단 안내 -->
+      <footer class="privacy">
+        시간표는 원본 시트의 내용을 기준으로 표시합니다.
+        오프라인에서는 마지막 저장본이 표시되므로 변경 여부와 갱신 시각을 확인하세요.
+        학급 저장은 로그인이나 접근 권한 인증이 아닙니다.
+      </footer>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
