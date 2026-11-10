@@ -2,7 +2,7 @@
 
 // 학생용 Apps Script 웹 앱 주소
 const DEFAULT_ENDPOINT =
-  'https://script.google.com/macros/s/AKfycbxp9ZLOZVmx-yEHEEvaHWEMBtxwaSPN5oTILMO9ED4uPM39J51AUhMKNU6Z7UBIlrTe/exec';
+  'https://script.google.com/macros/s/AKfycbzvgkCylMEZmkDvj0aqk5Zqq0QUO-b_wZwf9pvzOfJU2lv378MmzUnr6TNRXWbIR_SX/exec';
 
 const PREFIX = 'student-timetable.v1.';
 const CLASS_NAMES = ['1-1반', '1-2반', '1-3반', '2-1반', '2-2반', '2-3반', '3-1반', '3-2반', '3-3반'];
