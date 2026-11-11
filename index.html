@@ -415,7 +415,30 @@
 		  }
 		}
 
-    </style>
+    /* 2・3학년 일간표: 주간표와 독립된 영역 */
+#dailySection[hidden]{display:none}
+.daily-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 10px}
+.daily-bar h2{font-size:19px;margin:0}
+.daily-tabs{display:flex;gap:6px}
+.daily-tabs button{padding:8px 12px}
+.daily-table{display:grid;grid-template-columns:42px repeat(3,minmax(0,1fr))}
+.daily-table .cell{border-right:1px solid #e7ece7;font-size:14px}
+.daily-table .cell:nth-child(4n){border-right:0}
+.daily-table .cell.head{font-size:14px}
+@media(max-width:540px){.daily-table{grid-template-columns:34px repeat(3,minmax(0,1fr))}.daily-table .cell{font-size:13px}.daily-bar h2{font-size:17px}}
+
+
+/* 두 날짜를 항상 좌우로 표시하는 7열 표 */
+.daily-pair-table{display:grid;grid-template-columns:38px repeat(6,minmax(0,1fr))}
+.daily-pair-table .cell{min-width:0;border-right:1px solid #e7ece7;font-size:13px;min-height:54px}
+.daily-pair-table .cell.head{min-height:32px;font-size:13px}
+.daily-pair-table .date-cell{font-weight:750;min-height:38px;background:#eaf2eb}
+.daily-pair-table .period{white-space:nowrap;font-size:11px}
+.daily-pair-table .pair-divider{border-left:2px solid #9eb8a8}
+@media(max-width:540px){.daily-pair-table{grid-template-columns:30px repeat(6,minmax(0,1fr))}.daily-pair-table .cell{font-size:11px;padding:2px 1px;min-height:58px;line-height:1.2}.daily-pair-table .cell.head{font-size:11px;min-height:30px}.daily-pair-table .date-cell{font-size:13px!important;min-height:38px!important}.daily-pair-table .period{font-size:9px}}
+
+
+</style>
   </head>
 
   <body>
@@ -470,7 +493,19 @@
         </button>
       </form>
 
-      <!-- 주간 제목 및 이동 -->
+      <section aria-label="학년별 오늘 내일 시간표" hidden="" id="dailySection">
+<div class="daily-bar">
+<h2 id="dailyTitle"></h2>
+<div aria-label="일간 날짜 선택" class="daily-tabs">
+<button aria-pressed="true" data-daily-offset="0" type="button">오늘</button>
+<button data-daily-offset="2" type="button">다음</button>
+</div>
+</div>
+<div class="panel" id="dailySurface"><div id="dailySchedule"></div></div>
+<div aria-live="polite" class="status" id="dailyStatus" role="status"></div>
+<div class="hint">왼쪽: 이전 두 수업일 · 오른쪽: 다음 두 수업일 · 주말 제외</div>
+</section>
+<!-- 주간 제목 및 이동 -->
       <section class="weekbar">
         <div>
           <span class="badge" id="relative">이번 주</span>
