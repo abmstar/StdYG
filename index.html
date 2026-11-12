@@ -10,8 +10,8 @@
 
     <meta name="theme-color" content="#245b4a">
     <meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="여강고 학급 시간표">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="여강고 학급 시간표">
 
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="icon-192.png">
@@ -86,16 +86,16 @@
       select {
         font: inherit;
         background: white;
-        border: 1px solid #dae3dd;
+        border: 1px solid var(--line);
         border-radius: 12px;
         padding: 10px;
-        color: #172e29;
+        color: var(--ink);
       }
 
       .shell {
         max-width: 1050px;
         margin: auto;
-        padding: 30px 18px 40px;
+        padding: 24px 18px 40px;
       }
 
       /* 상단 제목 */
@@ -104,6 +104,18 @@
         justify-content: space-between;
         align-items: center;
         gap: 12px;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .title-group {
+        min-width: 0;
       }
 
       .eyebrow {
@@ -115,7 +127,7 @@
 
       h1 {
         font-size: 28px;
-        margin: 7px 0;
+        margin: 5px 0;
       }
 
       p {
@@ -128,12 +140,37 @@
         margin: 0;
       }
 
-      /* 학급 선택 및 조회 */
+      .tagline {
+        flex: 0 1 auto;
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.3;
+        word-break: keep-all;
+      }
+
+      #install {
+        display: none;
+        flex-shrink: 0;
+      }
+
+      /* 학급 선택, 일간 탭, 새로고침 한 줄 배치 및 높이 통일 */
       .controls {
         display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin: 24px 0 18px;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: nowrap;
+        margin: 18px 0 14px;
+      }
+
+      .controls select,
+      .controls button {
+        height: 40px;
+        padding: 0 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        box-sizing: border-box;
       }
 
       .controls .grow {
@@ -141,7 +178,30 @@
       }
 
       .teacher-input {
-        width: 180px;
+        width: 160px;
+        padding: 0 10px;
+      }
+
+      .icon-btn {
+        width: 40px;
+        padding: 0;
+        font-size: 17px;
+      }
+
+      .daily-tabs {
+        display: flex;
+        gap: 6px;
+      }
+
+      .daily-tabs[hidden] {
+        display: none;
+      }
+
+      .daily-tabs button[aria-pressed="true"] {
+        background: var(--green);
+        color: white;
+        border-color: var(--green);
+        font-weight: 600;
       }
 
       /* 주간 제목 및 이동 버튼 */
@@ -150,7 +210,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 12px;
-        margin: 22px 0 14px;
+        margin: 18px 0 12px;
       }
 
       .weekbar > div {
@@ -263,54 +323,68 @@
       .status {
         color: var(--muted);
         font-size: 12px;
-        /* min-height: 24px; */
-        margin-top: 12px;
+        margin-top: 10px;
       }
 
       .hint {
         text-align: center;
         font-size: 12px;
         color: var(--muted);
-        margin-top: 18px;
+        margin-top: 12px;
       }
 
       .privacy {
         font-size: 12px;
         color: var(--muted);
         line-height: 1.7;
-        margin-top: 24px;
-      }
-
-      /* 기존 설정 영역 스타일 */
-      .settings {
-        background: white;
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 18px;
         margin-top: 20px;
       }
 
-      .settings p {
-        font-size: 13px;
-        color: var(--muted);
-      }
-
-      .settings input {
-        width: 100%;
-      }
-
-      .settings button {
-        margin-top: 12px;
-      }
-
-      details summary {
-        cursor: pointer;
-        font-weight: 650;
-      }
-
-      /* 설치 가능 여부는 app.js에서 처리 */
-      #install {
+      /* 2・3학년 일간표: 주간표와 독립된 영역 */
+      #dailySection[hidden] {
         display: none;
+      }
+      .daily-table {
+        display: grid;
+        grid-template-columns: 42px repeat(3, minmax(0, 1fr));
+      }
+      .daily-table .cell {
+        border-right: 1px solid #e7ece7;
+        font-size: 14px;
+      }
+      .daily-table .cell:nth-child(4n) {
+        border-right: 0;
+      }
+      .daily-table .cell.head {
+        font-size: 14px;
+      }
+
+      /* 두 날짜를 항상 좌우로 표시하는 7열 표 */
+      .daily-pair-table {
+        display: grid;
+        grid-template-columns: 46px repeat(6, minmax(0, 1fr));
+      }
+      .daily-pair-table .cell {
+        min-width: 0;
+        border-right: 1px solid #e7ece7;
+        font-size: 13px;
+        min-height: 54px;
+      }
+      .daily-pair-table .cell.head {
+        min-height: 32px;
+        font-size: 13px;
+      }
+      .daily-pair-table .date-cell {
+        font-weight: 750;
+        min-height: 38px;
+        background: #eaf2eb;
+      }
+      .daily-pair-table .period {
+        white-space: nowrap;
+        font-size: 11px;
+      }
+      .daily-pair-table .pair-divider {
+        border-left: 2px solid #9eb8a8;
       }
 
       /* 태블릿 및 휴대전화 */
@@ -334,19 +408,50 @@
       /* 작은 휴대전화 화면 */
       @media (max-width: 540px) {
         .shell {
-          padding: 22px 10px;
+          padding: 18px 10px 28px;
         }
 
         h1 {
-          font-size: 23px;
+          font-size: 22px;
         }
 
         .top {
           align-items: flex-start;
         }
 
+        .title-row {
+          gap: 8px;
+        }
+
+        .title-group {
+          flex-shrink: 0;
+        }
+
+        .tagline {
+          font-size: 10px;
+        }
+
+        .controls {
+          gap: 5px;
+          margin: 14px 0 10px;
+        }
+
+        .controls select,
+        .controls button {
+          height: 36px;
+          padding: 0 10px;
+          font-size: 13px;
+        }
+
         .teacher-input {
-          width: 145px;
+          width: 102px;
+          padding: 0 7px;
+        }
+
+        .icon-btn {
+          width: 36px;
+          padding: 0;
+          font-size: 16px;
         }
 
         .table {
@@ -361,111 +466,58 @@
           font-size: 20px;
         }
 
-        .nav button {
-          padding: 10px;
-        }
-
-        .controls {
-          gap: 6px;
-        }
-
-        .controls button {
-          padding: 10px;
-        }
-
         .panel {
           border-radius: 14px;
         }
+
+        .daily-table {
+          grid-template-columns: 34px repeat(3, minmax(0, 1fr));
+        }
+        .daily-table .cell {
+          font-size: 13px;
+        }
+
+        .daily-pair-table {
+          grid-template-columns: 30px repeat(6, minmax(0, 1fr));
+        }
+        .daily-pair-table .cell {
+          font-size: 11px;
+          padding: 1px 1px;
+          min-height: 44px;
+          line-height: 1.2;
+        }
+        .daily-pair-table .cell.head {
+          font-size: 11px;
+          min-height: 30px;
+        }
+        .daily-pair-table .date-cell {
+          font-size: 13px !important;
+          min-height: 38px !important;
+        }
+        .daily-pair-table .period {
+          font-size: 9px;
+        }
       }
-	  /* 제목과 소개 문구를 가로로 배치 */
-		.title-row {
-		  display: flex;
-		  align-items: center;
-		  gap: 12px;
-		  flex: 1;
-		  min-width: 0;
-		}
-
-		.title-group {
-		  min-width: 0;
-		}
-
-		.tagline {
-		  flex: 0 1 auto;
-		  margin: 0;
-		  font-size: 12px;
-		  line-height: 1.3;
-		  word-break: keep-all;
-		}
-
-		#install {
-		  flex-shrink: 0;
-		}
-
-		/* 휴대전화에서는 간격과 글자 크기 축소 */
-		@media (max-width: 540px) {
-		  .title-row {
-			gap: 8px;
-		  }
-
-		  .title-group {
-			flex-shrink: 0;
-		  }
-
-		  .tagline {
-			font-size: 10px;
-		  }
-		}
-
-    /* 2・3학년 일간표: 주간표와 독립된 영역 */
-#dailySection[hidden]{display:none}
-.daily-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 10px}
-.daily-bar h2{font-size:19px;margin:0}
-.daily-tabs{display:flex;gap:6px}
-.daily-tabs button{padding:8px 12px}
-.daily-table{display:grid;grid-template-columns:42px repeat(3,minmax(0,1fr))}
-.daily-table .cell{border-right:1px solid #e7ece7;font-size:14px}
-.daily-table .cell:nth-child(4n){border-right:0}
-.daily-table .cell.head{font-size:14px}
-@media(max-width:540px){.daily-table{grid-template-columns:34px repeat(3,minmax(0,1fr))}.daily-table .cell{font-size:13px}.daily-bar h2{font-size:17px}}
-
-
-/* 두 날짜를 항상 좌우로 표시하는 7열 표 */
-.daily-pair-table{display:grid;grid-template-columns:46px repeat(6,minmax(0,1fr))}
-.daily-pair-table .cell{min-width:0;border-right:1px solid #e7ece7;font-size:13px;min-height:54px}
-.daily-pair-table .cell.head{min-height:32px;font-size:13px}
-.daily-pair-table .date-cell{font-weight:750;min-height:38px;background:#eaf2eb}
-.daily-pair-table .period{white-space:nowrap;font-size:11px}
-.daily-pair-table .pair-divider{border-left:2px solid #9eb8a8}
-@media(max-width:540px){
-	.daily-pair-table{grid-template-columns:30px repeat(6,minmax(0,1fr))}
-	.daily-pair-table .cell{font-size:11px;padding:1px 1px;min-height:44px;line-height:1.2}
-	.daily-pair-table .cell.head{font-size:11px;min-height:30px}
-	.daily-pair-table .date-cell{font-size:13px!important;min-height:38px!important}
-	.daily-pair-table .period{font-size:9px}}
-
-
-</style>
+    </style>
   </head>
 
   <body>
     <main class="shell">
       <!-- 상단 제목 -->
-		<header class="top">
-		  <div class="title-row">
-			<div class="title-group">
-			  <div class="eyebrow">Class Timetable</div>
-			  <h1>여강고 학급 시간표</h1>
-			</div>
+      <header class="top">
+        <div class="title-row">
+          <div class="title-group">
+            <div class="eyebrow">Class Timetable</div>
+            <h1>여강고 학급 시간표</h1>
+          </div>
 
-			<p class="sub tagline">꿈은 수업으로부터 피어난다.</p>
-		  </div>
+          <p class="sub tagline">꿈은 수업으로부터 피어난다.</p>
+        </div>
 
-		  <button id="install">앱 설치</button>
-		</header>
+        <button id="install">앱 설치</button>
+      </header>
 
-
-      <!-- 학급 선택 -->
+      <!-- 학급 선택, 일간 탭, 새로고침 -->
       <form id="teacherForm" class="controls">
         <label class="sr" for="teacher" hidden>
           학급
@@ -495,23 +547,24 @@
 
         <span class="grow"></span>
 
-        <button type="button" id="refresh">
-          새로고침
+        <div aria-label="일간 날짜 선택" class="daily-tabs" id="dailyTabs">
+          <button aria-pressed="true" data-daily-offset="0" type="button">오늘</button>
+          <button data-daily-offset="2" type="button">다음</button>
+        </div>
+
+        <button type="button" id="refresh" class="icon-btn" aria-label="새로고침" title="새로고침">
+          ↻
         </button>
       </form>
 
-      <section aria-label="학년별 오늘 내일 시간표" hidden="" id="dailySection">
-<div class="daily-bar">
-<h2 id="dailyTitle"></h2>
-<div aria-label="일간 날짜 선택" class="daily-tabs">
-<button aria-pressed="true" data-daily-offset="0" type="button">오늘</button>
-<button data-daily-offset="2" type="button">다음</button>
-</div>
-</div>
-<div class="panel" id="dailySurface"><div id="dailySchedule"></div></div>
-<div aria-live="polite" class="status" id="dailyStatus" role="status"></div>
-</section>
-<!-- 주간 제목 및 이동 -->
+      <!-- 2·3학년 일간 시간표 -->
+      <section aria-label="학년별 오늘 내일 시간표" hidden id="dailySection">
+        <h2 id="dailyTitle" hidden></h2>
+        <div class="panel" id="dailySurface"><div id="dailySchedule"></div></div>
+        <div aria-live="polite" class="status" id="dailyStatus" role="status"></div>
+      </section>
+
+      <!-- 주간 제목 및 이동 -->
       <section class="weekbar">
         <div>
           <span class="badge" id="relative">이번 주</span>
@@ -559,7 +612,7 @@
         시간표는 실시간으로 갱신됩니다.
         오프라인에서는 마지막 저장본이 표시되므로 변경 여부와 갱신 시각을 확인하세요.
         학급 저장은 로그인이나 접근 권한 없이 기억됩니다.
-		문의사항은 안병무 선생님에게
+        문의사항은 안병무 선생님에게
       </footer>
     </main>
 
