@@ -317,14 +317,11 @@ if (thisWeekButton) {
 
 $('refresh').onclick = async () => {
   const button = $('refresh');
-  const originalText = button.textContent;
   button.disabled = true;
-  button.textContent = '조회 중…';
   try {
     await loadWeek();
   } finally {
     button.disabled = false;
-    button.textContent = originalText;
   }
 };
 
@@ -451,88 +448,258 @@ armDateRefresh();
 
 // 추가: 2·3학년 두 수업일 시간표. 주간표와 독립적으로 이동합니다.
 (() => {
-  const section=document.getElementById('dailySection');
-  const title=document.getElementById('dailyTitle');
-  const body=document.getElementById('dailySchedule');
-  const status=document.getElementById('dailyStatus');
-  const tabs=[...document.querySelectorAll('[data-daily-offset]')];
-  let offset=0,version=0,lastDate='';
+  const section = document.getElementById('dailySection');
+  const dailyTabs = document.getElementById('dailyTabs');
+  const title = document.getElementById('dailyTitle');
+  const body = document.getElementById('dailySchedule');
+  const status = document.getElementById('dailyStatus');
+  const tabs = [...document.querySelectorAll('[data-daily-offset]')];
+  let offset = 0, version = 0, lastDate = '';
+
   function dateInfo(step) {
-    const p=koreaParts(); const date=new Date(Date.UTC(p.year,p.month-1,p.day));
-    while([0,6].includes(date.getUTCDay())) date.setUTCDate(date.getUTCDate()+1);
-    for(let i=0;i<step;i++){date.setUTCDate(date.getUTCDate()+1);while([0,6].includes(date.getUTCDay()))date.setUTCDate(date.getUTCDate()+1);}
-    const day=date.getUTCDay(),mon=new Date(date);mon.setUTCDate(date.getUTCDate()-(day+6)%7);
-    const fri=new Date(mon);fri.setUTCDate(mon.getUTCDate()+4);
-    const fmt=d=>`${d.getUTCMonth()+1}/${d.getUTCDate()}`;
-    return {date,day,sheet:`${fmt(mon)}~${fmt(fri)}`,label:`${fmt(date)}(${['일','월','화','수','목','금','토'][day]})`};
+    const p = koreaParts();
+    const date = new Date(Date.UTC(p.year, p.month - 1, p.day));
+    while ([0, 6].includes(date.getUTCDay())) date.setUTCDate(date.getUTCDate() + 1);
+    for (let i = 0; i < step; i++) {
+      date.setUTCDate(date.getUTCDate() + 1);
+      while ([0, 6].includes(date.getUTCDay())) date.setUTCDate(date.getUTCDate() + 1);
+    }
+    const day = date.getUTCDay(), mon = new Date(date);
+    mon.setUTCDate(date.getUTCDate() - (day + 6) % 7);
+    const fri = new Date(mon);
+    fri.setUTCDate(mon.getUTCDate() + 4);
+    const fmt = d => `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+    return {
+      date,
+      day,
+      sheet: `${fmt(mon)}~${fmt(fri)}`,
+      label: `${fmt(date)}(${['일', '월', '화', '수', '목', '금', '토'][day]})`
+    };
   }
-  function render(infos,classes,records,notes) {
-    const grid=document.createElement('div');grid.className='daily-pair-table';grid.setAttribute('role','table');grid.setAttribute('aria-label',title.textContent);
-    function cell(text,cls='',span=1,role='cell'){const el=document.createElement('div');el.className='cell '+cls;el.textContent=text;el.setAttribute('role',role);if(span>1)el.style.gridColumn=`span ${span}`;grid.append(el);}
-    cell('','head date-cell');
-    infos.forEach((info,i)=>cell(info.label+(notes[i]?'\n'+notes[i]:''),'head date-cell '+(i?'pair-divider':''),3,'columnheader'));
-    cell('교시','head','1','columnheader');
-    for(let i=0;i<2;i++) classes.forEach((c,j)=>cell(c,'head '+(i&&j===0?'pair-divider':''),1,'columnheader'));
-    for(let r=0;r<7;r++){
-      cell(`${r+1}교시`,'period',1,'rowheader');
-      infos.forEach((info,i)=>classes.forEach((c,j)=>cell(records[i] ? records[i].schedules[j][r][info.day-1]||'—' : '—',i&&j===0?'pair-divider':'')));
+
+  function render(infos, classes, records, notes) {
+    const grid = document.createElement('div');
+    grid.className = 'daily-pair-table';
+    grid.setAttribute('role', 'table');
+    grid.setAttribute('aria-label', title.textContent);
+
+    function cell(text, cls = '', span = 1, role = 'cell') {
+      const el = document.createElement('div');
+      el.className = 'cell ' + cls;
+      el.textContent = text;
+      el.setAttribute('role', role);
+      if (span > 1) el.style.gridColumn = `span ${span}`;
+      grid.append(el);
+    }
+
+    cell('', 'head date-cell');
+    infos.forEach((info, i) => cell(info.label + (notes[i] ? '\n' + notes[i] : ''), 'head date-cell ' + (i ? 'pair-divider' : ''), 3, 'columnheader'));
+    cell('교시', 'head', '1', 'columnheader');
+    for (let i = 0; i < 2; i++) classes.forEach((c, j) => cell(c, 'head ' + (i && j === 0 ? 'pair-divider' : ''), 1, 'columnheader'));
+    for (let r = 0; r < 7; r++) {
+      cell(`${r + 1}교시`, 'period', 1, 'rowheader');
+      infos.forEach((info, i) => classes.forEach((c, j) => cell(records[i] ? records[i].schedules[j][r][info.day - 1] || '—' : '—', i && j === 0 ? 'pair-divider' : '')));
     }
     body.replaceChildren(grid);
   }
-  async function loadDaily(){
-    const token=++version,selected=document.getElementById('teacher').value;
-    const grade=/^[23]-[123]반$/.test(selected)?selected[0]:'';section.hidden=!grade;if(!grade)return;
-    const infos=[dateInfo(offset),dateInfo(offset+1)],classes=[1,2,3].map(n=>`${grade}-${n}반`);
-    title.textContent=`${grade}학년 · 시간표`;
-    tabs.forEach(tab=>{const isToday=Number(tab.dataset.dailyOffset)===0;const active=isToday&&offset===0;tab.classList.toggle('primary',active);if(isToday)tab.setAttribute('aria-pressed',String(active));else tab.removeAttribute('aria-pressed');});
-    const sheets=[...new Set(infos.map(i=>i.sheet))];
-    const records={},notes={};
-    const key=sheet=>'daily-pair-v2.'+JSON.stringify([endpoint,grade,sheet]);
-    sheets.forEach(sheet=>{try{const saved=JSON.parse(store.get(key(sheet)));if(saved&&Array.isArray(saved.schedules))records[sheet]=saved;}catch{}});
-    const draw=()=>render(infos,classes,infos.map(i=>records[i.sheet]),infos.map(i=>notes[i.sheet]||(!records[i.sheet]?'조회 중…':'')));
-    // 상태는 날짜별로 표시하므로 다음 주 시트가 없어도 이번 주 표는 유지됩니다.
-    sheets.forEach(s=>{if(!records[s])notes[s]=navigator.onLine?'조회 중…':'저장본 없음';});draw();
-    if(!navigator.onLine){status.textContent='오프라인 · 저장된 주간 자료만 표시합니다.';return;}
-    status.textContent='최신 시간표 확인 중…';
-    const results=await Promise.all(sheets.map(async sheet=>{
-      try{
-        const values=await Promise.all(classes.map(className=>requestTimetable({className,sheet})));
-        if(values.some(v=>!v.ok&&v.code==='SHEET_NOT_FOUND'))return {sheet,missing:true};
-        values.forEach(v=>{if(!v.ok)throw new Error(v.message||'조회 실패');if(!Array.isArray(v.schedule)||v.schedule.length!==7||v.schedule.some(row=>!Array.isArray(row)||row.length!==5))throw new Error('응답 형식 오류');});
-        return {sheet,record:{schedules:values.map(v=>v.schedule),fetchedAt:new Date().toISOString()}};
-      }catch(error){return {sheet,error:error.message};}
-    }));
-    if(token!==version)return;
-    const errors=[];
-    results.forEach(r=>{
-      if(r.record){records[r.sheet]=r.record;notes[r.sheet]='';store.set(key(r.sheet),JSON.stringify(r.record));}
-      else if(r.missing){delete records[r.sheet];notes[r.sheet]='해당 주 시간표 없음';try{localStorage.removeItem(PREFIX+key(r.sheet));}catch{}errors.push(`${r.sheet} 시트 미등록`);}
-      else{notes[r.sheet]=records[r.sheet]?'저장본':'조회 실패';errors.push(`${r.sheet}: ${r.error}`);}
-    });draw();
-    status.textContent=errors.length?errors.join(' · '):`갱신 ${stamp(new Date().toISOString())} \u2003 ← 좌우로 밀어서 조회 →`;
 
+  async function loadDaily() {
+    const token = ++version, selected = document.getElementById('teacher').value;
+    const grade = /^[23]-[123]반$/.test(selected) ? selected[0] : '';
+    section.hidden = !grade;
+    if (dailyTabs) dailyTabs.hidden = !grade;
+    if (!grade) return;
+
+    const infos = [dateInfo(offset), dateInfo(offset + 1)], classes = [1, 2, 3].map(n => `${grade}-${n}반`);
+    title.textContent = `${grade}학년 · 시간표`;
+    tabs.forEach(tab => {
+      const isToday = Number(tab.dataset.dailyOffset) === 0;
+      const active = isToday && offset === 0;
+      tab.classList.toggle('primary', active);
+      if (isToday) tab.setAttribute('aria-pressed', String(active));
+      else tab.removeAttribute('aria-pressed');
+    });
+
+    const sheets = [...new Set(infos.map(i => i.sheet))];
+    const records = {}, notes = {};
+    const key = sheet => 'daily-pair-v2.' + JSON.stringify([endpoint, grade, sheet]);
+    sheets.forEach(sheet => {
+      try {
+        const saved = JSON.parse(store.get(key(sheet)));
+        if (saved && Array.isArray(saved.schedules)) records[sheet] = saved;
+      } catch {}
+    });
+
+    const draw = () => render(infos, classes, infos.map(i => records[i.sheet]), infos.map(i => notes[i.sheet] || (!records[i.sheet] ? '조회 중…' : '')));
+    sheets.forEach(s => { if (!records[s]) notes[s] = navigator.onLine ? '조회 중…' : '저장본 없음'; });
+    draw();
+
+    if (!navigator.onLine) {
+      status.textContent = '오프라인 · 저장된 주간 자료만 표시합니다.';
+      return;
+    }
+
+    status.textContent = '최신 시간표 확인 중…';
+    const results = await Promise.all(sheets.map(async sheet => {
+      try {
+        const values = await Promise.all(classes.map(className => requestTimetable({ className, sheet })));
+        if (values.some(v => !v.ok && v.code === 'SHEET_NOT_FOUND')) return { sheet, missing: true };
+        values.forEach(v => {
+          if (!v.ok) throw new Error(v.message || '조회 실패');
+          if (!Array.isArray(v.schedule) || v.schedule.length !== 7 || v.schedule.some(row => !Array.isArray(row) || row.length !== 5)) throw new Error('응답 형식 오류');
+        });
+        return { sheet, record: { schedules: values.map(v => v.schedule), fetchedAt: new Date().toISOString() } };
+      } catch (error) {
+        return { sheet, error: error.message };
+      }
+    }));
+
+    if (token !== version) return;
+    const errors = [];
+    results.forEach(r => {
+      if (r.record) {
+        records[r.sheet] = r.record;
+        notes[r.sheet] = '';
+        store.set(key(r.sheet), JSON.stringify(r.record));
+      } else if (r.missing) {
+        delete records[r.sheet];
+        notes[r.sheet] = '해당 주 시간표 없음';
+        try { localStorage.removeItem(PREFIX + key(r.sheet)); } catch {}
+        errors.push(`${r.sheet} 시트 미등록`);
+      } else {
+        notes[r.sheet] = records[r.sheet] ? '저장본' : '조회 실패';
+        errors.push(`${r.sheet}: ${r.error}`);
+      }
+    });
+    draw();
+    status.textContent = errors.length ? errors.join(' · ') : `갱신 ${stamp(new Date().toISOString())} \u2003 ← 좌우로 밀어서 조회 →`;
   }
-  function choose(value) { const next = Math.max(0,value); if (next !== offset) { offset = next; loadDaily(); } }
+
+  function choose(value) {
+    const next = Math.max(0, value);
+    if (next !== offset) {
+      offset = next;
+      loadDaily();
+    }
+  }
+
   tabs.forEach(tab => tab.addEventListener('click', () => {
     if (Number(tab.dataset.dailyOffset) === 0) choose(0);
     else choose(offset + 2);
   }));
+
   let start;
   const surface = document.getElementById('dailySurface');
-  surface.addEventListener('pointerdown', e => { if(e.isPrimary && e.button === 0) start = {x:e.clientX,y:e.clientY,t:Date.now(),id:e.pointerId}; });
-  surface.addEventListener('pointercancel', () => {start=null;});
-  surface.addEventListener('pointerup', e => {
-    if(!start || start.id !== e.pointerId) return;
-    const dx=e.clientX-start.x,dy=e.clientY-start.y,elapsed=Date.now()-start.t; start=null;
-    // 기존 주간표와 동일하게 오른쪽 밀기=다음 두 수업일, 왼쪽 밀기=이전 두 수업일.
-    if(Math.abs(dx)>65 && Math.abs(dx)>Math.abs(dy)*1.6 && elapsed<1200) choose(offset+(dx>0?2:-2));
+  surface.addEventListener('pointerdown', e => {
+    if (e.isPrimary && e.button === 0) start = { x: e.clientX, y: e.clientY, t: Date.now(), id: e.pointerId };
   });
-  document.getElementById('teacher').addEventListener('change', () => {offset=0;loadDaily();});
+  surface.addEventListener('pointercancel', () => { start = null; });
+  surface.addEventListener('pointerup', e => {
+    if (!start || start.id !== e.pointerId) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y, elapsed = Date.now() - start.t;
+    start = null;
+    if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.6 && elapsed < 1200) choose(offset + (dx > 0 ? 2 : -2));
+  });
+
+  document.getElementById('teacher').addEventListener('change', () => { offset = 0; loadDaily(); });
   document.getElementById('teacherForm').addEventListener('submit', loadDaily);
   document.getElementById('refresh').addEventListener('click', loadDaily);
-  window.addEventListener('online',loadDaily); window.addEventListener('offline',loadDaily);
-  function checkDate() {const d=JSON.stringify(koreaParts());if(d!==lastDate){lastDate=d;offset=0;loadDaily();}}
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkDate();});
-  setInterval(checkDate,60000);
-  lastDate=JSON.stringify(koreaParts());loadDaily();
+  window.addEventListener('online', loadDaily);
+  window.addEventListener('offline', loadDaily);
+
+  function checkDate() {
+    const d = JSON.stringify(koreaParts());
+    if (d !== lastDate) {
+      lastDate = d;
+      offset = 0;
+      loadDaily();
+    }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkDate(); });
+  setInterval(checkDate, 60000);
+  lastDate = JSON.stringify(koreaParts());
+  loadDaily();
+})();
+
+// === 오늘의 중식 연동 (NEIS API + 학년별 위치 자동 조정) ===
+(function initLunch() {
+  const NEIS_KEY = 'd5af74fa74044241a8cf5f076434d1b4';
+  const ATPT_CODE = 'J10';       // 경기도교육청
+  const SCHUL_CODE = '7530586';  // 여강고등학교
+  const box = document.getElementById('lunchBox');
+  const dailySection = document.getElementById('dailySection');
+  const dailyStatus = document.getElementById('dailyStatus');
+  const weeklySurface = document.getElementById('surface');
+  if (!box) return;
+
+  // 학년(일간표 표시 여부)에 따라 중식 컨테이너 위치 자동 이동
+  function syncLunchPosition() {
+    if (dailySection && !dailySection.hidden && dailyStatus) {
+      // 2·3학년: 일간 시간표(#dailySurface) 아래, #dailyStatus 바로 위로 이동
+      dailySection.insertBefore(box, dailyStatus);
+    } else if (weeklySurface) {
+      // 1학년: 주간 시간표(#surface) 바로 아래로 복귀
+      weeklySurface.insertAdjacentElement('afterend', box);
+    }
+  }
+
+  // #dailySection의 hidden 속성 변경 실시간 감지
+  if (dailySection) {
+    const observer = new MutationObserver(syncLunchPosition);
+    observer.observe(dailySection, { attributes: true, attributeFilter: ['hidden'] });
+  }
+  syncLunchPosition();
+
+  // 한국 시간(KST) 기준 오늘 날짜 YYYYMMDD 생성
+  const p = koreaParts();
+  const ymd = `${p.year}${String(p.month).padStart(2, '0')}${String(p.day).padStart(2, '0')}`;
+  const label = `${p.month}/${p.day}`;
+  const cacheKey = `stdyg_lunch_${ymd}`;
+
+  function render(menuText) {
+    if (!menuText) {
+      box.hidden = true;
+      return;
+    }
+    box.innerHTML = `<strong>🍱 ${label} 중식</strong> ${menuText}`;
+    box.hidden = false;
+    syncLunchPosition();
+  }
+
+  // 1. 오늘 저장된 캐시가 있으면 즉시 표시
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      render(cached);
+      return;
+    }
+  } catch {}
+
+  // 2. 나이스 API 호출
+  const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${ATPT_CODE}&SD_SCHUL_CODE=${SCHUL_CODE}&MMEAL_SC_CODE=2&MLSV_YMD=${ymd}`;
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const rows = data?.mealServiceDietInfo?.[1]?.row;
+      if (!rows || !rows.length) {
+        render('');
+        return;
+      }
+      // <br/>을 쉼표로 바꾸고 알레르기 번호 (1.2.5.) 및 불필요한 공백 제거
+      const cleanMenu = rows[0].DDISH_NM
+        .replace(/<br\s*\/?>/gi, ', ')
+        .replace(/\([0-9.]+\)/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/\s+,/g, ',')
+        .trim();
+
+      render(cleanMenu);
+      try {
+        localStorage.setItem(cacheKey, cleanMenu);
+      } catch {}
+    })
+    .catch(() => {
+      // 네트워크 오류 시 배너 숨김 유지
+    });
 })();
