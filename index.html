@@ -305,6 +305,27 @@
         color: #c3cec6;
       }
 
+      /* 오늘의 중식 배너 */
+      .lunch-box {
+        margin-top: 10px;
+        padding: 10px 14px;
+        background: #ffffff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--ink);
+      }
+
+      .lunch-box[hidden] {
+        display: none;
+      }
+
+      .lunch-box strong {
+        color: var(--green);
+        margin-right: 6px;
+      }
+
       /* 안내 및 상태 */
       .notice {
         padding: 34px 22px;
@@ -470,6 +491,11 @@
           border-radius: 14px;
         }
 
+        .lunch-box {
+          padding: 9px 12px;
+          font-size: 12px;
+        }
+
         .daily-table {
           grid-template-columns: 34px repeat(3, minmax(0, 1fr));
         }
@@ -594,6 +620,9 @@
       >
         <div id="schedule"></div>
       </section>
+
+      <!-- 오늘의 중식 배너 -->
+      <div id="lunchBox" class="lunch-box" hidden></div>
 
       <!-- 조회 상태 -->
       <div
