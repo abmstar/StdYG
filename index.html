@@ -10,12 +10,14 @@
 
     <meta name="theme-color" content="#245b4a">
     <meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<meta name="apple-mobile-web-app-title" content="여강고 학생용 시간표">
 
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <title>여강 학생 시간표</title>
+    <title>여강고 학생용 시간표</title>
 
     <style>
       :root {
@@ -261,7 +263,7 @@
       .status {
         color: var(--muted);
         font-size: 12px;
-        min-height: 24px;
+        /* min-height: 24px; */
         margin-top: 12px;
       }
 
@@ -456,7 +458,7 @@
 			  <h1>여강 학생 시간표</h1>
 			</div>
 
-			<p class="sub tagline">꿈은 수업으로 부터 피어난다.</p>
+			<p class="sub tagline">꿈은 수업으로부터 피어난다.</p>
 		  </div>
 
 		  <button id="install">앱 설치</button>
@@ -508,7 +510,6 @@
 </div>
 <div class="panel" id="dailySurface"><div id="dailySchedule"></div></div>
 <div aria-live="polite" class="status" id="dailyStatus" role="status"></div>
-<div class="hint">왼쪽: 이전 두 수업일 · 오른쪽: 다음 두 수업일 · 주말 제외</div>
 </section>
 <!-- 주간 제목 및 이동 -->
       <section class="weekbar">
@@ -555,7 +556,7 @@
 
       <!-- 하단 안내 -->
       <footer class="privacy">
-        시간표는 실시간으로 갱신됩니다..
+        시간표는 실시간으로 갱신됩니다.
         오프라인에서는 마지막 저장본이 표시되므로 변경 여부와 갱신 시각을 확인하세요.
         학급 저장은 로그인이나 접근 권한 없이 기억됩니다.
 		문의사항은 안병무 선생님에게
