@@ -404,7 +404,7 @@ if (installButton) {
   installButton.onclick = async () => {
     if (isAppleMobile) {
       window.alert(
-        '여강 학생 시간표 설치 안내\n\n' +
+        '여강고 학급 시간표 설치 안내\n\n' +
         '1. Safari에서 이 시간표 주소를 여세요.\n' +
         '2. 공유 버튼(네모 위로 화살표)을 누르세요.\n' +
         '   공유 버튼이 보이지 않으면 메뉴(…)에서 찾아보세요.\n' +
