@@ -509,7 +509,8 @@ armDateRefresh();
       else if(r.missing){delete records[r.sheet];notes[r.sheet]='해당 주 시간표 없음';try{localStorage.removeItem(PREFIX+key(r.sheet));}catch{}errors.push(`${r.sheet} 시트 미등록`);}
       else{notes[r.sheet]=records[r.sheet]?'저장본':'조회 실패';errors.push(`${r.sheet}: ${r.error}`);}
     });draw();
-    status.textContent=errors.length?errors.join(' · '):`온라인 조회 · 갱신 ${stamp(new Date().toISOString())}`;
+    status.textContent=errors.length?errors.join(' · '):`갱신 ${stamp(new Date().toISOString())} \u2003 ← 좌우로 밀어서 조회 →`;
+
   }
   function choose(value) { const next = Math.max(0,value); if (next !== offset) { offset = next; loadDaily(); } }
   tabs.forEach(tab => tab.addEventListener('click', () => {
