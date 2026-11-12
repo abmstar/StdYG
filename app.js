@@ -483,7 +483,7 @@ armDateRefresh();
     const token=++version,selected=document.getElementById('teacher').value;
     const grade=/^[23]-[123]반$/.test(selected)?selected[0]:'';section.hidden=!grade;if(!grade)return;
     const infos=[dateInfo(offset),dateInfo(offset+1)],classes=[1,2,3].map(n=>`${grade}-${n}반`);
-    title.textContent=`${grade}학년 · 이틀 시간표`;
+    title.textContent=`${grade}학년 · 시간표`;
     tabs.forEach(tab=>{const isToday=Number(tab.dataset.dailyOffset)===0;const active=isToday&&offset===0;tab.classList.toggle('primary',active);if(isToday)tab.setAttribute('aria-pressed',String(active));else tab.removeAttribute('aria-pressed');});
     const sheets=[...new Set(infos.map(i=>i.sheet))];
     const records={},notes={};
